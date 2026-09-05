@@ -24,7 +24,7 @@
 
 **本地优先的网页与桌面自动化工具包**——读网页、截图、表单自动化、视频转录、本地识图（OCR + 视觉大模型）、桌面控制，一套命令全部搞定。
 
-> 所有数据都在你的电脑本地处理，**零上传**。可独立使用，也可作为 AI 助手的技能（skill）接入。
+> 所有数据都在你的电脑本地处理，**零上传**。可独立使用，也可通过 **CLI / MCP / Agent Skill** 三种方式接入任何 AI 助手（Claude、Cursor、DeepSeek Harness 等）。
 
 ## ✨ 功能一览
 
@@ -41,6 +41,7 @@
 | 9 | 图像理解 | `vision describe <img>` | 本地视觉大模型 Qwen2.5-VL-3B 看图回答 |
 | 10 | 桌面控制 | `desktop ...` | 鼠标/键盘/截图（带前台窗口安全确认） |
 | 11 | 残留清理 | `cleanup` | 用完即删，只留提取产物 |
+| 12 | MCP 接入 | `mcp/server.mjs` | 全部能力注册为 MCP 工具，任何支持 MCP 的 AI 客户端即插即用 |
 
 ## 🚀 快速开始
 
@@ -157,6 +158,29 @@ node agent.mjs desktop type "要输入的文字"
 node agent.mjs desktop shot screen.png
 ```
 
+## 🤖 接入 AI 助手（三种方式，兼容所有主流 agent）
+
+| 方式 | 适用场景 | 说明 |
+| --- | --- | --- |
+| **CLI 直调** | 任何带终端能力的 agent（Claude Code、Cursor Agent、Codex 等） | 让 agent 执行 `node agent.mjs <命令>`，零配置 |
+| **MCP** | Claude Desktop、Cursor、VS Code Copilot、DSH、Cherry Studio、Kimi、豆包等 | 内置 MCP Server（12 个工具），客户端配置加一行即插即用，见 [docs/MCP.md](docs/MCP.md) |
+| **Agent Skill** | DeepSeek Harness、支持 Agent Skills 约定的环境 | 加载 `skill/web-agent/SKILL.md`，AI 自动获得调用说明 |
+
+MCP 快速配置示例（Claude Desktop / Cursor / VS Code 的 `mcp.json` 通用格式）：
+
+```json
+{
+  "mcpServers": {
+    "web-agent": {
+      "command": "node",
+      "args": ["C:\\path\\to\\web-agent\\mcp\\server.mjs"]
+    }
+  }
+}
+```
+
+自测：`node tests/mcp_test.mjs`
+
 ## 🏗️ 架构
 
 ```mermaid
@@ -204,12 +228,14 @@ flowchart LR
 | pip 安装慢 | `pip install -i https://pypi.tuna.tsinghua.edu.cn/simple <包>` |
 | macOS / Linux | llama.cpp 官方提供对应预编译包，替换 `bin/` 下的二进制即可，用法相同 |
 | 视觉服务占用内存 | `node agent.mjs vision describe --stop` 随时关闭 |
+| 怎么接入我的 AI 客户端 | 用内置 MCP Server，见 [docs/MCP.md](docs/MCP.md)；支持 CLI 直调与 Skill 两种备选 |
 
 ## 🗺️ 路线图
 
 - [x] v1.0.0 核心 11 项能力（网页 / 视频 / 识图 / 桌面 / 清理）
 - [x] Windows 一键安装 + 国内镜像加速
 - [x] AI 助手 skill 适配层（`skill/web-agent/`）
+- [x] v1.1.0 MCP 适配层（12 个工具，兼容所有主流 AI 客户端）
 - [ ] 更多站点适配器（YouTube 字幕、小红书、视频号）
 - [ ] 任务编排：YAML 定义多步骤自动化流程
 - [ ] Web 控制面板（浏览器里点选元素生成 act 脚本）

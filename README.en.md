@@ -24,7 +24,7 @@
 
 **A local-first web & desktop automation toolkit** — read web pages, capture screenshots, automate forms, transcribe videos, understand images (OCR + local vision-language model), and control the desktop, all from one command-line tool.
 
-> Everything runs **locally on your machine — zero data upload**. Use it standalone, or plug it into your AI assistant as a skill.
+> Everything runs **locally on your machine — zero data upload**. Use it standalone, or connect it to any AI assistant via **CLI / MCP / Agent Skill** (Claude, Cursor, DeepSeek Harness, and more).
 
 ## ✨ Features
 
@@ -41,6 +41,7 @@
 | 9 | Image understanding | `vision describe <img>` | Local Qwen2.5-VL-3B vision-language model |
 | 10 | Desktop control | `desktop ...` | Mouse/keyboard/screenshot with window-verification safety |
 | 11 | Auto cleanup | `cleanup` | Remove intermediates, keep only extracted artifacts |
+| 12 | MCP integration | `mcp/server.mjs` | All capabilities exposed as MCP tools for any MCP-compatible AI client |
 
 ## 🚀 Quick Start
 
@@ -112,6 +113,29 @@ node agent.mjs desktop focus "Notepad"
 node agent.mjs desktop type "Hello from web-agent"
 ```
 
+## 🤖 Connect to AI Assistants (three ways, works with any agent)
+
+| Method | Best for | Notes |
+| --- | --- | --- |
+| **Direct CLI** | Any agent with terminal access (Claude Code, Cursor Agent, Codex, …) | Just let it run `node agent.mjs <command>` — zero config |
+| **MCP** | Claude Desktop, Cursor, VS Code Copilot, DSH, Cherry Studio, Kimi, Doubao, … | Built-in MCP server (12 tools); add one line to the client config, see [docs/MCP.md](docs/MCP.md) |
+| **Agent Skill** | DeepSeek Harness and other Agent-Skills environments | Load `skill/web-agent/SKILL.md` |
+
+Quick MCP config (Claude Desktop / Cursor / VS Code `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "web-agent": {
+      "command": "node",
+      "args": ["C:\\path\\to\\web-agent\\mcp\\server.mjs"]
+    }
+  }
+}
+```
+
+Self-test: `node tests/mcp_test.mjs`
+
 ## 🏗️ Architecture
 
 ```mermaid
@@ -152,12 +176,14 @@ After transcription the tool automatically deletes the video file, `audio.wav`, 
 | No NVIDIA GPU? | `install.bat` downloads the CPU engine automatically (slower vision, still works) |
 | macOS / Linux? | Use the matching llama.cpp prebuilt binaries in `bin/`, all commands are identical |
 | Vision service uses memory? | Stop it anytime with `node agent.mjs vision describe --stop` |
+| Connect to my AI client? | Use the built-in MCP server — see [docs/MCP.md](docs/MCP.md); direct CLI and Skill are also available |
 
 ## 🗺️ Roadmap
 
 - [x] v1.0.0 — 11 core capabilities
 - [x] Windows one-click install + China-friendly mirrors
 - [x] AI assistant skill adapter (`skill/web-agent/`)
+- [x] v1.1.0 — MCP adapter (12 tools, works with any MCP-compatible AI client)
 - [ ] More site adapters (YouTube subtitles, Xiaohongshu, WeChat Channels)
 - [ ] Task orchestration via YAML workflow files
 - [ ] Web control panel (click-to-select elements → generate `act` scripts)

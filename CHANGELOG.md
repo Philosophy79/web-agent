@@ -2,6 +2,18 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 规范，并使用 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.0] - 2026-09-05
+
+### 新增（Added）
+
+- **MCP 适配层**：`mcp/server.mjs` 将全部能力注册为 12 个 MCP 工具
+  （fetch/shot/open/act/video/media/download/vision_ocr/vision_describe/vision_stop/desktop/cleanup），
+  任何支持 Model Context Protocol 的 AI 客户端（Claude Desktop、Cursor、VS Code Copilot、
+  DeepSeek Harness、Cherry Studio 等）均可即插即用
+- **接入文档**：`docs/MCP.md`（各客户端配置示例、工具清单、安全说明）
+- **MCP 自测脚本**：`tests/mcp_test.mjs`（全链路测试与 `--list-only` CI 模式）
+- CI 新增 MCP 服务器启动与工具列表测试
+
 ## [1.0.0] - 2026-09-05
 
 ### 新增（Added）
@@ -18,4 +30,5 @@
 - **品牌素材**：`assets/banner.png`、`assets/logo.png`（生成脚本 `tools/gen_assets.py`）
 - **工程化**：CI 流水线（Node/Python 语法检查）、Issue/PR 模板、Dependabot 配置
 
+[1.1.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.0.0

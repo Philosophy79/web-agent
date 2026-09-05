@@ -1,6 +1,6 @@
 {
   "name": "web-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local-first web & desktop automation toolkit: browser automation, video transcription, local OCR & vision-language model, desktop control. 本地优先的网页与桌面自动化工具。",
   "type": "module",
   "main": "agent.mjs",
@@ -35,6 +35,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "playwright-core": "^1.63.0"
   }
 }

@@ -29,6 +29,12 @@ jobs:
       - name: package.json 有效性
         run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
 
+      - name: 安装 npm 依赖
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: MCP 服务器启动与工具列表测试
+        run: node tests/mcp_test.mjs --list-only
+
       - name: 项目结构检查
         run: |
           test -f README.md
@@ -37,7 +43,9 @@ jobs:
           test -f install.bat
           test -f docs/COMPLIANCE.md
           test -f docs/PRIVACY.md
+          test -f docs/MCP.md
           test -f skill/web-agent/SKILL.md
           test -f assets/banner.png
           test -f assets/logo.png
+          test -f mcp/server.mjs
           echo "结构检查通过"

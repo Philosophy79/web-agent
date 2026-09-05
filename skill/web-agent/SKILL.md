@@ -9,6 +9,10 @@ description: >-
 
 # web-agent 技能使用说明
 
+> 本工具同时提供 **MCP 接入**（`mcp/server.mjs`，12 个 MCP 工具，兼容 Claude/Cursor/DSH 等
+> 所有 MCP 客户端，见 docs/MCP.md）。若当前环境已配置 MCP Server，优先使用 MCP 工具；
+> 本技能作为 CLI 直调方式使用。
+
 ## 何时使用
 
 - 用户给出链接，要求读取网页内容、整理成资料 → `fetch`
