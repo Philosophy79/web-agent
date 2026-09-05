@@ -1,0 +1,13 @@
+{
+  "name": "web-agent",
+  "version": "1.0.0",
+  "description": "AI 本地浏览器与桌面自动化插件：网页读取、视频转录、表单操作、鼠标键盘控制",
+  "type": "module",
+  "scripts": {
+    "agent": "node agent.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

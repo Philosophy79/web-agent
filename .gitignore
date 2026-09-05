@@ -1,0 +1,24 @@
+# 依赖与生成物（不入库）
+node_modules/
+models/
+bin/
+downloads/
+output/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+
+# 压缩包与临时文件
+*.zip
+*.log
+*.part
+*.ytdl
+*.tmp
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
