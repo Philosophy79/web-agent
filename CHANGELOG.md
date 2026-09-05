@@ -2,6 +2,14 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 规范，并使用 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 变更（Changed）
+
+- README 双语完全同步：新增「给 AI 装上眼睛和手」价值主张、「为什么选择 web-agent」对比表、CI 与 Release 徽章
+- 默认分支由 `master` 更名为 `main`（CI 同步更新）
+- GitHub 主题标签扩充至 20 个（ai/mcp/agent/local-first/computer-use/vision/llm 等），开启 Discussions 讨论区
+
 ## [1.1.0] - 2026-09-05
 
 ### 新增（Added）

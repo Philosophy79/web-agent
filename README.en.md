@@ -16,15 +16,24 @@
   <img alt="Node" src="https://img.shields.io/badge/Node.js-%E2%89%A520-green">
   <img alt="Python" src="https://img.shields.io/badge/Python-%E2%89%A53.10-yellow">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Philosophy79/web-agent/ci.yml?branch=main">
+  <img alt="Release" src="https://img.shields.io/github/v/release/Philosophy79/web-agent">
   <img alt="PRs" src="https://img.shields.io/badge/PRs-welcome-brightgreen">
   <img alt="Stars" src="https://img.shields.io/github/stars/Philosophy79/web-agent?style=social">
 </p>
 
 # web-agent
 
-**A local-first web & desktop automation toolkit** — read web pages, capture screenshots, automate forms, transcribe videos, understand images (OCR + local vision-language model), and control the desktop, all from one command-line tool.
+> **Give your AI eyes and hands.**
+> Let any LLM browse the web, transcribe videos, understand screenshots, and control the desktop —
+> all running locally with zero data upload.
 
-> Everything runs **locally on your machine — zero data upload**. Use it standalone, or connect it to any AI assistant via **CLI / MCP / Agent Skill** (Claude, Cursor, DeepSeek Harness, and more).
+**web-agent** is a local-first web & desktop automation toolkit: read web pages, capture screenshots,
+automate forms, transcribe videos, understand images (OCR + a local vision-language model), and control
+the desktop — all from one command-line tool.
+
+> Use it standalone, or connect it to any AI assistant via **CLI / MCP / Agent Skill**
+> (Claude, Cursor, DeepSeek Harness, and more).
 
 ## ✨ Features
 
@@ -42,6 +51,23 @@
 | 10 | Desktop control | `desktop ...` | Mouse/keyboard/screenshot with window-verification safety |
 | 11 | Auto cleanup | `cleanup` | Remove intermediates, keep only extracted artifacts |
 | 12 | MCP integration | `mcp/server.mjs` | All capabilities exposed as MCP tools for any MCP-compatible AI client |
+
+## 🆚 Why web-agent
+
+| Capability | web-agent | Playwright MCP | Hand-written scrapers |
+| --- | --- | --- | --- |
+| Read pages / screenshot / form automation | ✅ | ✅ | DIY |
+| Video transcription (subtitles + local Whisper) | ✅ | ❌ | Hard |
+| Local OCR for text in images | ✅ | ❌ | Hard |
+| Local vision-language model that "sees" images | ✅ | ❌ | — |
+| Desktop control (mouse & keyboard) | ✅ | ❌ | — |
+| Zero data upload (local processing) | ✅ | Depends on setup | ✅ |
+| Auto-cleanup of leftover files | ✅ | ❌ | — |
+| Works with any AI assistant | ✅ CLI / MCP / Skill | ✅ MCP only | ❌ |
+
+**The key difference**: web-agent is more than browser automation — it bundles video transcription,
+local OCR, a local vision model, and desktop control into one privacy-first toolkit, so your AI never
+needs a cloud vision API to understand web content.
 
 ## 🚀 Quick Start
 

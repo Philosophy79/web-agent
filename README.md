@@ -16,15 +16,23 @@
   <img alt="Node" src="https://img.shields.io/badge/Node.js-%E2%89%A520-green">
   <img alt="Python" src="https://img.shields.io/badge/Python-%E2%89%A53.10-yellow">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey">
+  <img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Philosophy79/web-agent/ci.yml?branch=main">
+  <img alt="Release" src="https://img.shields.io/github/v/release/Philosophy79/web-agent">
   <img alt="PRs" src="https://img.shields.io/badge/PRs-welcome-brightgreen">
   <img alt="Stars" src="https://img.shields.io/github/stars/Philosophy79/web-agent?style=social">
 </p>
 
 # web-agent
 
-**本地优先的网页与桌面自动化工具包**——读网页、截图、表单自动化、视频转录、本地识图（OCR + 视觉大模型）、桌面控制，一套命令全部搞定。
+> **给 AI 装上眼睛和手。**
+> 让任何大模型都能浏览网页、转录视频、看懂截图、操作电脑——
+> 全程在本地运行，数据零上传。
 
-> 所有数据都在你的电脑本地处理，**零上传**。可独立使用，也可通过 **CLI / MCP / Agent Skill** 三种方式接入任何 AI 助手（Claude、Cursor、DeepSeek Harness 等）。
+**web-agent** 是一个本地优先的网页与桌面自动化工具包：读网页、截图、表单自动化、视频转录、
+本地识图（OCR + 视觉大模型）、桌面控制，一套命令全部搞定。
+
+> 可独立使用，也可通过 **CLI / MCP / Agent Skill** 三种方式接入任何 AI 助手
+> （Claude、Cursor、DeepSeek Harness 等）。
 
 ## ✨ 功能一览
 
@@ -42,6 +50,22 @@
 | 10 | 桌面控制 | `desktop ...` | 鼠标/键盘/截图（带前台窗口安全确认） |
 | 11 | 残留清理 | `cleanup` | 用完即删，只留提取产物 |
 | 12 | MCP 接入 | `mcp/server.mjs` | 全部能力注册为 MCP 工具，任何支持 MCP 的 AI 客户端即插即用 |
+
+## 🆚 为什么选择 web-agent
+
+| 能力 | web-agent | Playwright MCP | 手写爬虫脚本 |
+| --- | --- | --- | --- |
+| 读网页 / 截图 / 表单自动化 | ✅ | ✅ | 需自行开发 |
+| 视频转录（字幕 + 本地 Whisper） | ✅ | ❌ | 难 |
+| 本地 OCR 识别图中文字 | ✅ | ❌ | 难 |
+| 本地视觉大模型"看图" | ✅ | ❌ | 无 |
+| 桌面控制（鼠标键盘） | ✅ | ❌ | 无 |
+| 数据零上传（本地处理） | ✅ | 取决于部署 | ✅ |
+| 用完自动清理残留文件 | ✅ | ❌ | — |
+| 接入任意 AI 助手 | ✅ CLI / MCP / Skill | ✅ 仅 MCP | ❌ |
+
+**核心差异**：web-agent 不只是浏览器自动化——它把「视频转录 + 本地识图 + 视觉大模型 + 桌面控制」
+打包成一套本地优先的工具链，AI 处理网页内容时不再需要任何云端视觉 API。
 
 ## 🚀 快速开始
 
