@@ -1,12 +1,39 @@
 {
   "name": "web-agent",
   "version": "1.0.0",
-  "description": "AI 本地浏览器与桌面自动化插件：网页读取、视频转录、表单操作、鼠标键盘控制",
+  "description": "Local-first web & desktop automation toolkit: browser automation, video transcription, local OCR & vision-language model, desktop control. 本地优先的网页与桌面自动化工具。",
   "type": "module",
+  "main": "agent.mjs",
   "scripts": {
-    "agent": "node agent.mjs"
+    "agent": "node agent.mjs",
+    "check": "node --check agent.mjs && python -m py_compile python/*.py"
   },
+  "keywords": [
+    "automation",
+    "browser",
+    "web-scraping",
+    "ocr",
+    "whisper",
+    "transcription",
+    "vision-language-model",
+    "rpa",
+    "privacy",
+    "local-first",
+    "cli"
+  ],
+  "author": "Philosophy79",
   "license": "MIT",
+  "homepage": "https://github.com/Philosophy79/web-agent#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Philosophy79/web-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Philosophy79/web-agent/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "playwright-core": "^1.63.0"
   }

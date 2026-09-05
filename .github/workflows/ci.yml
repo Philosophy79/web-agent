@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    name: 语法与结构检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Node 语法检查
+        run: node --check agent.mjs
+
+      - name: Python 语法检查
+        run: python -m py_compile python/*.py
+
+      - name: package.json 有效性
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+
+      - name: 项目结构检查
+        run: |
+          test -f README.md
+          test -f README.en.md
+          test -f LICENSE
+          test -f install.bat
+          test -f docs/COMPLIANCE.md
+          test -f docs/PRIVACY.md
+          test -f skill/web-agent/SKILL.md
+          test -f assets/banner.png
+          test -f assets/logo.png
+          echo "结构检查通过"
