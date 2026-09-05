@@ -9,6 +9,8 @@
 - README 双语完全同步：新增「给 AI 装上眼睛和手」价值主张、「为什么选择 web-agent」对比表、CI 与 Release 徽章
 - 默认分支由 `master` 更名为 `main`（CI 同步更新）
 - GitHub 主题标签扩充至 20 个（ai/mcp/agent/local-first/computer-use/vision/llm 等），开启 Discussions 讨论区
+- main 分支启用保护（禁止强制推送/删除，PR 合并要求 CI 通过）
+- 新增终端演示动图 `assets/demo.gif`（生成脚本 `tools/gen_demo.py`），嵌入双语 README
 
 ## [1.1.0] - 2026-09-05
 

@@ -34,6 +34,10 @@
 > 可独立使用，也可通过 **CLI / MCP / Agent Skill** 三种方式接入任何 AI 助手
 > （Claude、Cursor、DeepSeek Harness 等）。
 
+## 🎬 演示
+
+<p align="center"><img src="assets/demo.gif" alt="web-agent 演示" width="760"></p>
+
 ## ✨ 功能一览
 
 | # | 功能 | 命令 | 说明 |

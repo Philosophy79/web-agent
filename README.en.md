@@ -35,6 +35,10 @@ the desktop — all from one command-line tool.
 > Use it standalone, or connect it to any AI assistant via **CLI / MCP / Agent Skill**
 > (Claude, Cursor, DeepSeek Harness, and more).
 
+## 🎬 Demo
+
+<p align="center"><img src="assets/demo.gif" alt="web-agent demo" width="760"></p>
+
 ## ✨ Features
 
 | # | Feature | Command | Notes |
