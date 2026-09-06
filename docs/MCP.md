@@ -92,7 +92,7 @@ DSH 通过 profile 补丁层加载 MCP 客户端。编辑
 任何支持 stdio MCP 的客户端（Cherry Studio、Kimi、豆包、Windsurf 等）配置方式一致：
 `command: node` + `args: [<绝对路径>/mcp/server.mjs]`。
 
-## 注册的 12 个工具
+## 注册的 15 个工具
 
 | 工具名 | 功能 |
 | --- | --- |
@@ -100,7 +100,7 @@ DSH 通过 profile 补丁层加载 MCP 客户端。编辑
 | `shot` | 网页截图 |
 | `open` | 观看页面/视频并抓帧 |
 | `act` | 表单自动化（危险动作默认拒绝，需 `approve:true`） |
-| `video` | 视频转录（字幕优先 + 本地 Whisper，自动清理） |
+| `video` | 视频转录（字幕优先 + 本地 Whisper，自动清理；MCP 默认 --quiet） |
 | `media` | 拦截页面真实媒体流 |
 | `download` | 下载任意文件 |
 | `vision_ocr` | 本地 OCR 识别图中文字 |
@@ -108,6 +108,12 @@ DSH 通过 profile 补丁层加载 MCP 客户端。编辑
 | `vision_stop` | 关闭常驻视觉服务 |
 | `desktop` | 桌面控制（输入前需先 focus 目标窗口） |
 | `cleanup` | 清理中间残留文件 |
+| `digest` | 长内容章节摘要与关键词索引（本地零 token） |
+| `search` | 在转录稿中检索相关片段（带时间戳） |
+| `read` | 分块读取本地文本文件（省 token 关键） |
+
+> 每个工具都有输出长度上限，截断时提示改用 `read`/`search` 按需获取，
+> 长视频/长文章请遵循「video --quiet → digest → read 摘要 → search/read 片段」工作流。
 
 ## 安全说明
 

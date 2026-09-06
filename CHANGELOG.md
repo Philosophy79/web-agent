@@ -2,6 +2,21 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 规范，并使用 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.3.0] - 2026-09-06
+
+### 新增（Added）
+
+- **长内容理解工作流（核心场景）**：`digest`（章节摘要 + 关键词索引）、`search`（转录稿片段检索，带时间戳）、
+  `read`（按行分块读取本地文本）——转录/摘要/检索全部本地计算，**零 API token**
+- `video` / `media` 新增 `--quiet` 精简输出模式（只输出摘要与文件路径）
+- MCP 工具扩展为 15 个（新增 digest/search/read），并为每个工具设置输出上限，
+  长内容按需分块读取
+
+### 变更（Changed）
+
+- MCP 工具定义全面精简（描述与 schema 瘦身）：工具定义开销约 1500 tokens/请求
+- 技能文档（SKILL.md）新增「核心工作流」与「Token 效率铁律」章节，指导 AI 按省 token 方式工作
+
 ## [1.2.0] - 2026-09-06
 
 ### 新增（Added）
@@ -45,6 +60,7 @@
 - **品牌素材**：`assets/banner.png`、`assets/logo.png`（生成脚本 `tools/gen_assets.py`）
 - **工程化**：CI 流水线（Node/Python 语法检查）、Issue/PR 模板、Dependabot 配置
 
+[1.3.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.3.0
 [1.2.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.0.0

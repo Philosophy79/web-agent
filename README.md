@@ -54,6 +54,9 @@
 | 10 | 桌面控制 | `desktop ...` | 鼠标/键盘/截图（带前台窗口安全确认） |
 | 11 | 残留清理 | `cleanup` | 用完即删，只留提取产物 |
 | 12 | MCP 接入 | `mcp/server.mjs` | 全部能力注册为 MCP 工具，任何支持 MCP 的 AI 客户端即插即用 |
+| 13 | 内容摘要索引 | `digest <转录稿\|url>` | 生成长内容的章节摘要与关键词索引（本地计算，零 API token） |
+| 14 | 片段检索 | `search <关键词>` | 在转录稿中检索相关片段（带时间戳），长内容问答按需取用 |
+| 15 | 分块读取 | `read <文件>` | 按行偏移读取本地文本，避免全文灌入上下文 |
 
 ## 🆚 为什么选择 web-agent
 
@@ -70,6 +73,26 @@
 
 **核心差异**：web-agent 不只是浏览器自动化——它把「视频转录 + 本地识图 + 视觉大模型 + 桌面控制」
 打包成一套本地优先的工具链，AI 处理网页内容时不再需要任何云端视觉 API。
+
+## 💡 核心场景：长内容"理解 → 问答"（零 token 预处理）
+
+看长视频/长文章不用逐帧：本地转文本 → 本地建索引 → 提问时只检索相关片段。
+
+```bash
+# 1) 转文本（本地，不花 API token）
+node agent.mjs video "<视频链接>" --quiet          # 视频 → transcript.txt
+node agent.mjs fetch "<文章链接>" --format text > downloads/article.txt
+
+# 2) 建摘要与话题索引（本地）
+node agent.mjs digest downloads/xxx/transcript.txt --out output/digest.md
+
+# 3) 读摘要（几百字即可掌握全貌）
+node agent.mjs read output/digest.md --lines 60
+
+# 4) 提问时：检索相关片段（只把命中的段落读入上下文）
+node agent.mjs search "卷积层 作用" --file downloads/xxx/transcript.txt --top 5
+node agent.mjs read downloads/xxx/transcript.txt --offset <命中行> --lines 20
+```
 
 ## 🚀 快速开始
 
@@ -257,6 +280,7 @@ flowchart LR
 | macOS / Linux | llama.cpp 官方提供对应预编译包，替换 `bin/` 下的二进制即可，用法相同 |
 | 视觉服务占用内存 | `node agent.mjs vision describe --stop` 随时关闭 |
 | 怎么接入我的 AI 客户端 | 用内置 MCP Server，见 [docs/MCP.md](docs/MCP.md)；支持 CLI 直调与 Skill 两种备选 |
+| Token 消耗太高 | 见上文「核心场景」：长内容用 `--quiet` + `digest` + `search` + `read`，转录/检索/摘要全部本地零 token |
 
 ## 🗺️ 路线图
 
@@ -264,6 +288,7 @@ flowchart LR
 - [x] Windows 一键安装 + 国内镜像加速
 - [x] AI 助手 skill 适配层（`skill/web-agent/`）
 - [x] v1.1.0 MCP 适配层（12 个工具，兼容所有主流 AI 客户端）
+- [x] v1.3.0 长内容理解工作流（digest/search/read + --quiet + token 优化）
 - [ ] 更多站点适配器（YouTube 字幕、小红书、视频号）
 - [ ] 任务编排：YAML 定义多步骤自动化流程
 - [ ] Web 控制面板（浏览器里点选元素生成 act 脚本）

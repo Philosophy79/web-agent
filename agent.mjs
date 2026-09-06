@@ -352,6 +352,7 @@ async function cmdVideo(args) {
   const cookies = flagValue(args, '--cookies'); if (cookies) pyArgs.push('--cookies', cookies);
   if (hasFlag(args, '--keep-video')) pyArgs.push('--keep-video');
   if (hasFlag(args, '--list-subs')) pyArgs.push('--list-subs');
+  if (hasFlag(args, '--quiet')) pyArgs.push('--quiet');
 
   // 抖音/头条系站点需要新鲜 Cookie：先用本机 Edge 访问一次页面采集
   let cookiesFile = flagValue(args, '--cookies-file');
@@ -388,10 +389,11 @@ async function cmdVideo(args) {
 /* ============ media：拦截页面真实媒体流地址（对付抖音等风控站点） ============ */
 async function cmdMedia(args) {
   const url = args.find(a => /^https?:/i.test(a));
-  if (!url) return console.error('用法: node agent.mjs media <url> [--seconds 25] [--out file.txt]');
+  if (!url) return console.error('用法: node agent.mjs media <url> [--seconds 25] [--out file.txt] [--quiet]');
   const seconds = Number(flagValue(args, '--seconds', '25'));
   const out = flagValue(args, '--out');
-  log('media', { url, seconds, out });
+  const quiet = hasFlag(args, '--quiet');
+  log('media', { url, seconds, out, quiet });
 
   const found = [];
   const browser = await launch(true);
@@ -405,7 +407,7 @@ async function cmdMedia(args) {
         || /(douyinvod|byteicdn|bytevideocdn|aweme.*player|playwm|watermark|\.ts\b)/i.test(u);
       if (isMediaStream && !found.includes(u)) {
         found.push(u);
-        console.log(`[media:${rt}] ${u.slice(0, 400)}`);
+        if (!quiet) console.log(`[media:${rt}] ${u.slice(0, 400)}`);
       }
     });
     page.on('response', async res => {
@@ -454,6 +456,7 @@ async function cmdMedia(args) {
     await browser.close();
   }
   console.log(`共捕获 ${found.length} 个媒体地址`);
+  if (quiet && found.length) console.log(`（--quiet 模式，地址已省略${out ? `，清单见 ${out}` : ''}）`);
   if (out && found.length) {
     fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
     fs.writeFileSync(out, found.join('\n') + '\n', 'utf8');
@@ -484,7 +487,7 @@ async function cmdMedia(args) {
   if (out && fs.existsSync(out) && !hasFlag(args, '--keep-urls')) {
     try { fs.unlinkSync(out); console.log(`已自动清理地址清单: ${out}`); } catch { /* 忽略 */ }
   }
-  console.log(found.join('\n'));
+  if (!quiet) console.log(found.join('\n'));
 }
 
 /* ============ cleanup：清理下载/输出目录中的临时残留文件 ============ */
@@ -589,6 +592,216 @@ function cmdDesktop(args) {
   return runPython('desktop.py', args, 120000);
 }
 
+/* ============ read：分块读取本地文本文件（省 token 关键） ============ */
+function cmdRead(args) {
+  const file = args.find(a => !a.startsWith('--'));
+  if (!file) return console.error('用法: node agent.mjs read <文件> [--offset 行号] [--lines 100] [--max 字符数]');
+  const offset = Math.max(1, Number(flagValue(args, '--offset', '1')) || 1);
+  const linesN = Number(flagValue(args, '--lines', '100')) || 100;
+  const maxChars = Number(flagValue(args, '--max', '6000')) || 6000;
+  const p = path.resolve(file);
+  if (!fs.existsSync(p)) return console.error(`文件不存在: ${p}`);
+  const all = fs.readFileSync(p, 'utf8').split(/\r?\n/);
+  const part = all.slice(offset - 1, offset - 1 + linesN);
+  let text = part.map((l, i) => `${offset + i}: ${l}`).join('\n');
+  const total = all.length;
+  if (text.length > maxChars) text = text.slice(0, maxChars) + '\n...(截断，可用 --offset/--lines 继续读取)';
+  console.log(`[${path.basename(p)}] 共 ${total} 行 | 显示第 ${offset}-${offset + part.length - 1} 行`);
+  console.log(text);
+}
+
+/* ============ 分词/停用词工具（digest 与 search 共用） ============ */
+const STOPWORDS = new Set([
+  ...'的地得了是在和与及或有不就都而但被把让这那哪些个们你我他她它们什么怎么为于中上下很很很就都还也才又再更最太非常比较特别已经正在将要因为所以如果然后但是不过虽然以及而且或者只是',
+  'the', 'a', 'an', 'of', 'to', 'in', 'and', 'is', 'are', 'was', 'were', 'for', 'on', 'with',
+  'that', 'this', 'as', 'by', 'be', 'it', 'or', 'at', 'from', 'we', 'you', 'they', 'he', 'she',
+  '我们', '大家', '今天', '这个', '那个', '一个', '你们', '他们',
+]);
+
+function tokenize(s) {
+  const lower = String(s).toLowerCase();
+  const tokens = new Set();
+  if (/[\u4e00-\u9fff]/.test(lower)) {
+    for (let i = 0; i < lower.length; i++) tokens.add(lower[i]);
+    for (let i = 0; i < lower.length - 1; i++) tokens.add(lower.slice(i, i + 2));
+  } else {
+    for (const w of lower.split(/[^a-z0-9]+/)) if (w.length >= 2) tokens.add(w);
+  }
+  return [...tokens].filter(t => t.length >= 2 || /[\u4e00-\u9fff]/.test(t));
+}
+
+function parseSegments(text) {
+  // 支持 "[12.3s - 15.6s] 文本"（转录稿）与纯段落两种格式
+  const segRe = /^\[\s*([\d.]+)s?\s*-\s*([\d.]+)s?\]\s*(.*)$/;
+  const segments = [];
+  let cur = null;
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.match(segRe);
+    if (m) {
+      cur = { start: parseFloat(m[1]), end: parseFloat(m[2]), text: m[3].trim() };
+      if (cur.text) segments.push(cur);
+    } else if (cur && line.trim()) {
+      cur.text += ' ' + line.trim();
+    } else if (line.trim()) {
+      segments.push({ start: null, end: null, text: line.trim() });
+    }
+  }
+  return segments;
+}
+
+function fmtTime(sec) {
+  if (sec === null || sec === undefined) return '';
+  const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/* ============ digest：生成长内容摘要与话题索引（本地运行，零 API token） ============ */
+async function extractPageText(url, waitMs = 1500) {
+  const browser = await launch(true);
+  try {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForTimeout(waitMs);
+    return await page.evaluate(() => (document.body ? document.body.innerText : '').slice(0, 80000));
+  } finally {
+    await browser.close();
+  }
+}
+
+async function cmdDigest(args) {
+  const src = args.find(a => !a.startsWith('--'));
+  if (!src) return console.error('用法: node agent.mjs digest <转录稿.txt|网页url> [--window 秒] [--out digest.md]');
+  const windowSec = Number(flagValue(args, '--window', '300')) || 300;
+
+  let text;
+  if (/^https?:/i.test(src)) {
+    console.log(`正在提取网页正文: ${src}`);
+    text = await extractPageText(src);
+    if (!text) return console.error('网页正文提取失败');
+  } else {
+    const p = path.resolve(src);
+    if (!fs.existsSync(p)) return console.error(`文件不存在: ${p}`);
+    text = fs.readFileSync(p, 'utf8');
+  }
+
+  const segments = parseSegments(text);
+  if (!segments.length) return console.error('未解析到内容段落');
+  const timed = segments.every(s => s.start !== null);
+
+  // 分章：有时间戳按 --window 秒聚合，否则每 15 段/2500 字一章
+  const chunks = [];
+  let cur = { segs: [], chars: 0, t0: timed ? segments[0].start : null };
+  for (const s of segments) {
+    const needSplit = timed
+      ? (s.start - cur.t0 >= windowSec)
+      : (cur.segs.length >= 15 || cur.chars > 2500);
+    if (needSplit && cur.segs.length) { chunks.push(cur); cur = { segs: [], chars: 0, t0: s.start }; }
+    cur.segs.push(s);
+    cur.chars += s.text.length;
+  }
+  if (cur.segs.length) chunks.push(cur);
+
+  // 每章：关键词 top8 + 要点句 top3（按词频打分，纯本地计算）
+  const lines = [`# 内容摘要与话题索引`, '', `- 来源: ${/^https?:/i.test(src) ? src : path.basename(src)}`, `- 章节数: ${chunks.length}`, ''];
+  const toc = [];
+  chunks.forEach((c, i) => {
+    // 词频统计：只统计跨段落出现 ≥2 次的 2 字以上词（过滤口语词噪音）
+    const freq = new Map(); // token -> {count, segs:Set}
+    for (const s of c.segs) {
+      const seen = new Set();
+      for (const t of tokenize(s.text)) {
+        if (STOPWORDS.has(t) || t.length < 2) continue;
+        if (!freq.has(t)) freq.set(t, { count: 0, segs: new Set() });
+        const f = freq.get(t);
+        f.count++;
+        if (!seen.has(t)) { f.segs.add(s.text.slice(0, 30)); seen.add(t); }
+      }
+    }
+    const keywords = [...freq.entries()]
+      .filter(([t, f]) => f.segs.size >= 2 && f.count >= 2)
+      .sort((a, b) => b[1].segs.size - a[1].segs.size || b[1].count - a[1].count)
+      .slice(0, 8).map(e => e[0]);
+    const scored = c.segs.map(s => {
+      let score = 0;
+      for (const t of tokenize(s.text)) {
+        if (STOPWORDS.has(t) || t.length < 2) continue;
+        score += (freq.get(t)?.count || 0);
+      }
+      return { s, score: score / Math.max(1, Math.sqrt(s.text.length)) };
+    }).sort((a, b) => b.score - a.score);
+    const keys = scored.slice(0, 3).map(x => x.s.text.trim().slice(0, 120));
+    const label = timed ? `[${fmtTime(c.segs[0].start)} - ${fmtTime(c.segs[c.segs.length - 1].end)}]` : `第 ${i + 1} 章`;
+    toc.push(`- ${label} ${keys[0] || ''}`);
+    lines.push(`## ${i + 1}. ${label}`, '');
+    if (keywords.length) lines.push(`关键词: ${keywords.join(' / ')}`, '');
+    lines.push('要点:', '');
+    keys.forEach(k => lines.push(`- ${k}`));
+    lines.push('');
+  });
+  lines.push('## 目录', '', ...toc, '');
+
+  const out = flagValue(args, '--out', path.join(OUTPUT_DIR, `digest_${Date.now()}.md`));
+  fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });
+  fs.writeFileSync(out, lines.join('\n'), 'utf8');
+  console.log(`摘要已生成: ${out}（${chunks.length} 章）`);
+  console.log(lines.slice(0, 30).join('\n'));
+}
+
+/* ============ search：在转录稿/文本中检索相关片段（本地运行，零 API token） ============ */
+function findLatestTranscript() {
+  const dir = DOWNLOAD_DIR;
+  if (!fs.existsSync(dir)) return null;
+  let best = null, bestT = 0;
+  for (const d of fs.readdirSync(dir, { recursive: true, withFileTypes: true })) {
+    if (!d.isFile()) continue;
+    const p = path.join(d.parentPath ?? d.path, d.name);
+    if (!/transcript\.(txt|md)$/i.test(d.name)) continue;
+    try {
+      const st = fs.statSync(p);
+      if (st.mtimeMs > bestT) { bestT = st.mtimeMs; best = p; }
+    } catch { /* 忽略 */ }
+  }
+  return best;
+}
+
+function cmdSearch(args) {
+  const query = args.find(a => !a.startsWith('--'));
+  if (!query) return console.error('用法: node agent.mjs search <关键词> [--file 文件] [--top 5] [--window 1] [--max 每段字符]');
+  const file = flagValue(args, '--file') || findLatestTranscript();
+  if (!file) return console.error('未找到转录稿，请用 --file 指定文件');
+  const p = path.resolve(file);
+  if (!fs.existsSync(p)) return console.error(`文件不存在: ${p}`);
+  const top = Number(flagValue(args, '--top', '5')) || 5;
+  const win = Number(flagValue(args, '--window', '1')) || 0;
+  const maxChars = Number(flagValue(args, '--max', '400')) || 400;
+
+  const text = fs.readFileSync(p, 'utf8');
+  const segments = parseSegments(text);
+  const qTokens = tokenize(query);
+  if (!qTokens.length) return console.error('关键词为空');
+  const scored = segments.map((s, i) => {
+    const t = s.text.toLowerCase();
+    let score = 0;
+    for (const q of qTokens) {
+      if (q.length >= 2 && t.includes(q)) score += 2;
+      else if (q.length === 1 && t.includes(q)) score += 1;
+    }
+    return { s, i, score: score / (1 + s.text.length / 250) };
+  }).sort((a, b) => b.score - a.score).slice(0, top);
+
+  console.log(`检索: "${query}" | 文件: ${path.basename(p)} | 命中 ${scored.filter(x => x.score > 0).length}/${top}`);
+  for (const { s, i } of scored) {
+    if (s.score <= 0) continue;
+    const time = s.start !== null ? `[${fmtTime(s.start)}-${fmtTime(s.end)}]` : `[段${i + 1}]`;
+    let body = s.text;
+    if (win > 0) {
+      const ctx = segments.slice(Math.max(0, i - win), i + win + 1).map(x => x.text).join(' ');
+      if (ctx.length > body.length) body = ctx;
+    }
+    console.log(`${time} ${body.slice(0, maxChars)}${body.length > maxChars ? '...' : ''}`);
+  }
+}
+
 /* ============ 入口 ============ */
 const HELP = `
 web-agent —— AI 本地浏览器与桌面自动化插件
@@ -604,10 +817,16 @@ web-agent —— AI 本地浏览器与桌面自动化插件
   act  --json '{"steps":[...]}' [--approve] [--dry-run] [--keep]
         表单自动化。步骤: goto/wait/fill/type/click/press/check/select/hover/extract/shot
         危险动作（密码/支付/删除/注销等）必须加 --approve
-  video <url> [--model small] [--lang zh] [--cookies edge|none] [--keep-video] [--list-subs]
-        视频转录：优先自带字幕，缺失时下载+Whisper 本地语音识别
-  media <url> [--seconds 25] [--out file.txt] [--save-audio out.mp4]
-        拦截页面真实媒体流地址（m3u8/mp4），用于抖音等有风控的站点
+  video <url> [--model small] [--lang zh] [--cookies edge|none] [--keep-video] [--list-subs] [--quiet]
+        视频转录：优先自带字幕，缺失时下载+Whisper 本地语音识别；--quiet 只输出摘要不逐句打印
+  media <url> [--seconds 25] [--out file.txt] [--save-audio out.mp4] [--quiet]
+        拦截页面真实媒体流地址（m3u8/mp4），用于抖音等有风控的站点；--quiet 精简输出
+  digest <转录稿.txt|网页url> [--window 秒] [--out digest.md]
+        生成长内容的章节摘要与关键词索引（本地计算，零 API token）
+  search <关键词> [--file 转录稿] [--top 5] [--window 1] [--max 400]
+        在转录稿/文本中检索相关片段（带时间戳），只返回命中段落，省 token
+  read <文件> [--offset 行号] [--lines 100] [--max 6000]
+        分块读取本地文本文件，长内容按需读取
   download <url> [--out 文件名] [--referer 来源页]
         通用文件下载（图片/PDF/JSON/安装包等任意文件）
   vision ocr <图片路径> [--json] | vision describe <图片路径> [--prompt ...]
@@ -632,6 +851,9 @@ async function main() {
     case 'video': return await cmdVideo(rest);
     case 'media': return await cmdMedia(rest);
     case 'download': return await cmdDownload(rest);
+    case 'read': return cmdRead(rest);
+    case 'digest': return await cmdDigest(rest);
+    case 'search': return cmdSearch(rest);
     case 'vision': return cmdVision(rest);
     case 'cleanup': return cmdCleanup(rest);
     case 'desktop': return cmdDesktop(rest);

@@ -55,6 +55,9 @@ the desktop — all from one command-line tool.
 | 10 | Desktop control | `desktop ...` | Mouse/keyboard/screenshot with window-verification safety |
 | 11 | Auto cleanup | `cleanup` | Remove intermediates, keep only extracted artifacts |
 | 12 | MCP integration | `mcp/server.mjs` | All capabilities exposed as MCP tools for any MCP-compatible AI client |
+| 13 | Content digest | `digest <transcript\|url>` | Chapter summaries + keyword index, computed locally (zero API tokens) |
+| 14 | Segment search | `search <query>` | Retrieve relevant transcript segments with timestamps |
+| 15 | Chunked reading | `read <file>` | Read local text files by line offset — never dump long content into context |
 
 ## 🆚 Why web-agent
 
@@ -72,6 +75,26 @@ the desktop — all from one command-line tool.
 **The key difference**: web-agent is more than browser automation — it bundles video transcription,
 local OCR, a local vision model, and desktop control into one privacy-first toolkit, so your AI never
 needs a cloud vision API to understand web content.
+
+## 💡 Core workflow: understand long content, then answer questions (zero-token preprocessing)
+
+Don't watch long videos yourself: transcribe locally → build an index locally → retrieve only relevant segments when asked.
+
+```bash
+# 1) Text extraction (local, no API tokens)
+node agent.mjs video "<video-url>" --quiet             # video → transcript.txt
+node agent.mjs fetch "<article-url>" --format text > downloads/article.txt
+
+# 2) Build digest & topic index (local)
+node agent.mjs digest downloads/xxx/transcript.txt --out output/digest.md
+
+# 3) Read the digest (a few hundred words cover the whole thing)
+node agent.mjs read output/digest.md --lines 60
+
+# 4) When asked: search relevant segments, then read only the hits
+node agent.mjs search "convolution layer" --file downloads/xxx/transcript.txt --top 5
+node agent.mjs read downloads/xxx/transcript.txt --offset <line> --lines 20
+```
 
 ## 🚀 Quick Start
 
@@ -214,6 +237,7 @@ After transcription the tool automatically deletes the video file, `audio.wav`, 
 - [x] Windows one-click install + China-friendly mirrors
 - [x] AI assistant skill adapter (`skill/web-agent/`)
 - [x] v1.1.0 — MCP adapter (12 tools, works with any MCP-compatible AI client)
+- [x] v1.3.0 — long-content understanding workflow (digest/search/read + --quiet + token optimization)
 - [ ] More site adapters (YouTube subtitles, Xiaohongshu, WeChat Channels)
 - [ ] Task orchestration via YAML workflow files
 - [ ] Web control panel (click-to-select elements → generate `act` scripts)

@@ -9,9 +9,28 @@ description: >-
 
 # web-agent 技能使用说明
 
-> 本工具同时提供 **MCP 接入**（`mcp/server.mjs`，12 个 MCP 工具，兼容 Claude/Cursor/DSH 等
+> 本工具同时提供 **MCP 接入**（`mcp/server.mjs`，15 个 MCP 工具，兼容 Claude/Cursor/DSH 等
 > 所有 MCP 客户端，见 docs/MCP.md）。若当前环境已配置 MCP Server，优先使用 MCP 工具；
 > 本技能作为 CLI 直调方式使用。
+
+## 核心工作流：长内容理解与问答（最重要，务必遵守）
+
+用户的核心诉求是：给出视频/文章链接后，先完整理解内容，之后随时提问。**严禁把全文一次性读入上下文**，按下面流程执行：
+
+1. **转文本（本地，零 token）**
+   - 视频：`node agent.mjs video "<url>" --quiet`（--quiet 只输出摘要与文件路径；抖音等风控站点先 `media --quiet --save-audio` 再 `python python/video.py --video-file <音频> --quiet`）
+   - 网页文章：`node agent.mjs fetch "<url>" --format text > downloads/article.txt`
+2. **建索引（本地，零 token）**：`node agent.mjs digest <transcript.txt|article.txt>` → 生成章节摘要与关键词索引 digest.md
+3. **读摘要**：`node agent.mjs read <digest.md> --lines 60`（只读摘要，不读全文）
+4. **回答问题**：用户提问时先 `node agent.mjs search "<关键词>" --file <transcript.txt> --top 5` 检索相关片段，再 `read` 只读取命中区域附近的原文，然后基于这些片段作答（可附时间戳）
+
+## Token 效率铁律
+
+- 转录/检索/摘要全部本地完成，**不得为了省事把 transcript 全文打印进对话**
+- 长文件一律用 `read --offset/--lines` 分块读取；单次读取不超过 ~100 行
+- 工具输出已截断时，用 read/search 按需取，不要重复执行整个命令
+- 避免重复执行 fetch/video 等重命令；产物文件在 downloads/ 与 output/ 中可直接复用
+- 回答尽量精炼，引用关键句即可，不要复述全文
 
 ## 何时使用
 
@@ -40,8 +59,11 @@ node agent.mjs <命令> ...
 | `node agent.mjs shot <url> [--file out.png] [--seconds 2]` | 截图 |
 | `node agent.mjs open <url> [--seconds 15] [--every 3] [--prefix out/frame]` | 播放并抓帧 |
 | `node agent.mjs act --json '{"steps":[...]}' [--approve] [--dry-run]` | 表单自动化 |
-| `node agent.mjs video <url> [--model small] [--lang zh]` | 视频转录 |
-| `node agent.mjs media <url> [--seconds 25] [--save-audio out.mp4]` | 拦截媒体流 |
+| `node agent.mjs video <url> [--model small] [--lang zh] [--quiet]` | 视频转录（--quiet 只输出摘要） |
+| `node agent.mjs media <url> [--seconds 25] [--save-audio out.mp4] [--quiet]` | 拦截媒体流 |
+| `node agent.mjs digest <转录稿|网页url> [--out digest.md]` | 生成本地摘要与话题索引 |
+| `node agent.mjs search <关键词> [--file 文件] [--top 5]` | 检索相关片段（带时间戳） |
+| `node agent.mjs read <文件> [--offset 行] [--lines 100]` | 分块读取本地文本 |
 | `node agent.mjs download <url> [--out file]` | 下载文件 |
 | `node agent.mjs vision ocr <img>` / `vision describe <img> [--prompt ...]` | 识图 |
 | `node agent.mjs desktop foreground \| focus \| type \| key \| shot` | 桌面控制 |

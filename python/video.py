@@ -99,7 +99,7 @@ def find_video_file(outdir):
     return cands[0] if cands else None
 
 
-def transcribe(wav, outdir, model_size, lang, device="cpu"):
+def transcribe(wav, outdir, model_size, lang, device="cpu", quiet=False):
     # Windows 下 ctranslate2 与 MKL 的 OpenMP 库冲突修复（KMP Error #15）
     os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
     try:
@@ -123,9 +123,11 @@ def transcribe(wav, outdir, model_size, lang, device="cpu"):
             idx += 1
             ft.write(f"[{seg.start:7.1f}s - {seg.end:7.1f}s] {line}\n")
             fs.write(f"{idx}\n{fmt_ts(seg.start)} --> {fmt_ts(seg.end)}\n{line}\n\n")
-            print(f"[{seg.start:7.1f}s - {seg.end:7.1f}s] {line}", flush=True)
+            if not quiet:
+                print(f"[{seg.start:7.1f}s - {seg.end:7.1f}s] {line}", flush=True)
 
     print("== 转录完成 ==")
+    print(f"共 {idx} 句")
     print("文字稿:", tp)
     print("字幕文件:", sp)
     return tp
@@ -171,6 +173,7 @@ def main():
     ap.add_argument("--video-file", default=None, help="直接转录本地视频文件（跳过下载）")
     ap.add_argument("--keep-video", action="store_true")
     ap.add_argument("--keep-audio", action="store_true")
+    ap.add_argument("--quiet", action="store_true", help="只输出摘要与文件路径，不逐句打印转录文本（省 token）")
     ap.add_argument("--list-subs", action="store_true")
     a = ap.parse_args()
 
@@ -283,7 +286,7 @@ def main():
         sys.exit("ffmpeg 失败: " + r.stderr[-1500:])
 
     # ============ Whisper 转录 ============
-    tp = transcribe(wav, outdir, a.model, a.lang, a.device)
+    tp = transcribe(wav, outdir, a.model, a.lang, a.device, quiet=a.quiet)
     auto_cleanup(outdir, keep_video=a.keep_video, keep_audio=a.keep_audio)
     # 若输入源是我们下载目录里的中间产物（如抖音音频流），提取完成后一并删除；
     # 用户自己目录里的文件绝不触碰
