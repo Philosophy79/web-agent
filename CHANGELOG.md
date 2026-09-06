@@ -2,15 +2,20 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 规范，并使用 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.2.0] - 2026-09-06
+
+### 新增（Added）
+
+- 终端演示动图 `assets/demo.gif`（生成脚本 `tools/gen_demo.py`），嵌入双语 README
+- DSH 原生 MCP 接入的实测配置方法（`docs/MCP.md` 新增 DeepSeek Harness 章节：
+  profile 补丁写法、PATH 环境变量要点、热重载与验证方法）
 
 ### 变更（Changed）
 
 - README 双语完全同步：新增「给 AI 装上眼睛和手」价值主张、「为什么选择 web-agent」对比表、CI 与 Release 徽章
-- 默认分支由 `master` 更名为 `main`（CI 同步更新）
-- GitHub 主题标签扩充至 20 个（ai/mcp/agent/local-first/computer-use/vision/llm 等），开启 Discussions 讨论区
-- main 分支启用保护（禁止强制推送/删除，PR 合并要求 CI 通过）
-- 新增终端演示动图 `assets/demo.gif`（生成脚本 `tools/gen_demo.py`），嵌入双语 README
+- 默认分支由 `master` 更名为 `main`（CI 同步更新），启用分支保护
+  （禁止强制推送/删除，PR 合并要求 CI 通过）
+- GitHub 主题标签扩充至 20 个，开启 Discussions 讨论区
 
 ## [1.1.0] - 2026-09-05
 
@@ -40,5 +45,6 @@
 - **品牌素材**：`assets/banner.png`、`assets/logo.png`（生成脚本 `tools/gen_assets.py`）
 - **工程化**：CI 流水线（Node/Python 语法检查）、Issue/PR 模板、Dependabot 配置
 
+[1.2.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Philosophy79/web-agent/releases/tag/v1.0.0

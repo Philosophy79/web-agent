@@ -1,6 +1,6 @@
 {
   "name": "web-agent",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Local-first web & desktop automation toolkit: browser automation, video transcription, local OCR & vision-language model, desktop control. 本地优先的网页与桌面自动化工具。",
   "type": "module",
   "main": "agent.mjs",

@@ -53,14 +53,39 @@ macOS / Linux 同理，把路径换成 `/Users/you/web-agent/mcp/server.mjs`。
 
 项目根目录创建 `.vscode/mcp.json`，内容同上。
 
-### DeepSeek Harness
+### DeepSeek Harness（实测可用，0.1.2-rc.1）
 
-在 DSH 的 MCP 客户端设置中新增一个 stdio 类型的 MCP Server：
+DSH 通过 profile 补丁层加载 MCP 客户端。编辑
+`~/.dsh/profiles/<你的 profile>/cordis.patch.yml`，追加：
 
-- 命令：`node`
-- 参数：`<你的路径>/web-agent/mcp/server.mjs`
+```yaml
+# web-agent MCP 服务器（不需要时删除本段，配置热重载）
+- insert:
+    - id: mcp-web-agent
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: web-agent
+        transport: stdio
+        command: node
+        args:
+          - 'C:\你的路径\web-agent\mcp\server.mjs'   # 绝对路径
+        cwd: 'C:\你的路径\web-agent'
+        env:
+          PATH: '<你的完整 Windows PATH>'             # 必填：MCP 子进程环境被净化
+          PYTHONIOENCODING: 'utf-8'
+```
 
-（具体入口位置以你所用的 DSH 版本界面为准：设置 → MCP / 插件配置。）
+要点：
+
+1. **PATH 必须显式给出**——DSH 会净化 MCP 子进程的环境变量，不写 PATH 会导致工具内部的
+   python/ffmpeg 找不到（取 `[Environment]::GetEnvironmentVariable('Path','Machine') + ';' + User`）
+2. profile 默认 `patchReload: live`，**保存即热重载**，无需重启 DSH
+3. 验证：任务管理器/进程列表出现 `node ...\web-agent\mcp\server.mjs` 即注册成功；
+   新会话工具名为 `mcp__web-agent__*`（12 个）
+4. 卸载：删除上面整段即可；注意 12 个工具定义会计入每个会话的 token 开销
+
+备选方案：把 `skill/web-agent/` 复制到 `~/.dsh/skills/web-agent/` 或
+`<工作区>/.dsh/skills/web-agent/`，新会话的任务匹配时会自动加载技能（CLI 直调方式）。
 
 ### 其他客户端
 
